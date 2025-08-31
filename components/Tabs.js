@@ -11,10 +11,12 @@ import {
   Pressable,
   Dimensions,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import Header from './Header';
+import SideMenu from './SideMenu';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const screenWidth = Dimensions.get('window').width;
@@ -31,6 +33,7 @@ const GalleryScreen = () => {
   const [hasMore, setHasMore] = useState(true);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [showSideMenu, setShowSideMenu] = useState(false);
 
   const navigation = useNavigation();
 
@@ -71,17 +74,41 @@ const GalleryScreen = () => {
           buttonPositive: 'OK',
         });
         if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          console.warn('Permission denied');
+          Alert.alert(
+            'Permission Required',
+            'Buzo needs access to your photos to display your gallery. Please grant permission in your device settings to use this feature.',
+            [
+              {text: 'Cancel', style: 'cancel'},
+              {text: 'Open Settings', onPress: () => {
+                // You can add logic to open device settings here
+                console.log('Open settings pressed');
+              }},
+            ]
+          );
+          return false;
         }
+        return true;
       } catch (err) {
         console.error('Permission error:', err);
+        Alert.alert(
+          'Error',
+          'An error occurred while requesting permissions. Please try again or check your device settings.',
+        );
+        return false;
       }
     }
+    return true;
   };
 
   const fetchImages = async () => {
     try {
       setLoading(true);
+      const hasPermission = await requestPermissions();
+      if (!hasPermission) {
+        setLoading(false);
+        return;
+      }
+
       const result = await CameraRoll.getPhotos({
         first: 500, // Increased to get more photos
         assetType: 'Photos',
@@ -450,7 +477,7 @@ const GalleryScreen = () => {
 
   return (
     <View style={styles.outerContainer}>
-      <Header />
+      <Header onMenuPress={() => setShowSideMenu(true)} />
       {renderTabs()}
       <FlatList
         data={visiblePhotos} // Now correctly using visiblePhotos
@@ -484,6 +511,10 @@ const GalleryScreen = () => {
         ListFooterComponent={renderFooter}
         refreshing={refreshing} // <- NEW
         onRefresh={onRefresh}
+      />
+      <SideMenu
+        visible={showSideMenu}
+        onClose={() => setShowSideMenu(false)}
       />
     </View>
   );

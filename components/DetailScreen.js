@@ -101,13 +101,20 @@ const DetailScreen = ({route, navigation}) => {
             if (result === RESULTS.DENIED) {
               const requestResult = await request(permission);
               if (requestResult !== RESULTS.GRANTED) {
-                console.log(`Permission denied: ${permission}`);
+                Alert.alert(
+                  'Permission Required',
+                  'Buzo needs storage access to manage your photos. Please grant permission in your device settings to delete or manage photos.',
+                  [
+                    {text: 'Cancel', style: 'cancel'},
+                    {text: 'Open Settings', onPress: openSettings},
+                  ],
+                );
                 return false;
               }
             } else if (result === RESULTS.BLOCKED) {
               Alert.alert(
                 'Permission Required',
-                'Please enable storage access in Settings to delete photos',
+                'Buzo needs storage access to manage your photos. Please enable storage access in Settings to delete photos.',
                 [
                   {text: 'Cancel', style: 'cancel'},
                   {text: 'Open Settings', onPress: openSettings},
@@ -134,7 +141,7 @@ const DetailScreen = ({route, navigation}) => {
             if (manageStorageResult === RESULTS.DENIED) {
               Alert.alert(
                 'Additional Permission Required',
-                'For Android 11+, you may need to grant "All files access" permission for photo deletion. This will redirect you to settings.',
+                'Buzo requires "All files access" permission on Android 11+ for photo deletion. This will redirect you to settings where you can grant this permission.',
                 [
                   {text: 'Cancel', style: 'cancel'},
                   {
@@ -159,6 +166,10 @@ const DetailScreen = ({route, navigation}) => {
       return true;
     } catch (error) {
       console.error('Permission error:', error);
+      Alert.alert(
+        'Permission Error',
+        'An error occurred while requesting permissions. Please check your device settings and try again.',
+      );
       return false;
     }
   };
@@ -235,7 +246,7 @@ const DetailScreen = ({route, navigation}) => {
       if (!isDeleteAvailable()) {
         Alert.alert(
           'Feature Not Available',
-          'Photo deletion is not supported. This might be due to:\n\n1. Outdated library version\n2. Platform limitations\n3. Missing permissions\n\nPhotos will be hidden instead.',
+          'Photo deletion is not supported on your device. This might be due to:\n\n1. Platform limitations\n2. Missing permissions\n3. Device restrictions\n\nBuzo will hide the photos instead of deleting them.',
           [
             {text: 'Cancel', style: 'cancel'},
             {text: 'Hide Photos', onPress: hideUnstarredPhotos},
@@ -248,7 +259,7 @@ const DetailScreen = ({route, navigation}) => {
       if (!hasPermission) {
         Alert.alert(
           'Permission Required',
-          'Please grant all required permissions to delete photos.',
+          'Buzo needs storage permissions to delete photos. Please grant the required permissions in your device settings.',
         );
         return;
       }
@@ -306,7 +317,7 @@ const DetailScreen = ({route, navigation}) => {
                 // If deletion fails, offer to hide instead
                 Alert.alert(
                   'Deletion Failed',
-                  `Could not delete photos: ${err.message}\n\nWould you like to hide them instead?`,
+                  `Buzo could not delete photos: ${err.message}\n\nWould you like to hide them from the gallery instead?`,
                   [
                     {text: 'Cancel', style: 'cancel'},
                     {text: 'Hide Photos', onPress: hideUnstarredPhotos},
@@ -319,7 +330,10 @@ const DetailScreen = ({route, navigation}) => {
       );
     } catch (error) {
       console.error('Delete photos error:', error);
-      Alert.alert('Error', 'An error occurred while trying to delete photos.');
+      Alert.alert(
+        'Error', 
+        'Buzo encountered an error while trying to delete photos. Please try again or check your device permissions.'
+      );
     }
   };
 
@@ -368,7 +382,7 @@ const DetailScreen = ({route, navigation}) => {
 
     Alert.alert(
       'All Photos Kept',
-      'All photos remain in your gallery, but unstarred ones are hidden in this app.',
+      'All photos remain in your device gallery, but unstarred ones are now hidden in Buzo.',
     );
   };
 
