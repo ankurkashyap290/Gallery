@@ -12,6 +12,7 @@ import {
   Dimensions,
   ActivityIndicator,
   Alert,
+  Linking,
 } from 'react-native';
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
@@ -80,8 +81,7 @@ const GalleryScreen = () => {
             [
               {text: 'Cancel', style: 'cancel'},
               {text: 'Open Settings', onPress: () => {
-                // You can add logic to open device settings here
-                console.log('Open settings pressed');
+                Linking.openSettings();
               }},
             ]
           );

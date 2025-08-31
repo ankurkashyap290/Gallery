@@ -43,6 +43,7 @@ const DetailScreen = ({route, navigation}) => {
   const [showPopup, setShowPopup] = useState(false);
   const [memorySaved, setMemorySaved] = useState('0 MB');
   const [isZoomed, setIsZoomed] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (image && allPhotos?.length) {
@@ -106,7 +107,7 @@ const DetailScreen = ({route, navigation}) => {
                   'Buzo needs storage access to manage your photos. Please grant permission in your device settings to delete or manage photos.',
                   [
                     {text: 'Cancel', style: 'cancel'},
-                    {text: 'Open Settings', onPress: openSettings},
+                    {text: 'Open Settings', onPress: () => Linking.openSettings()},
                   ],
                 );
                 return false;
@@ -117,7 +118,7 @@ const DetailScreen = ({route, navigation}) => {
                 'Buzo needs storage access to manage your photos. Please enable storage access in Settings to delete photos.',
                 [
                   {text: 'Cancel', style: 'cancel'},
-                  {text: 'Open Settings', onPress: openSettings},
+                  {text: 'Open Settings', onPress: () => Linking.openSettings()},
                 ],
               );
               return false;
@@ -148,7 +149,11 @@ const DetailScreen = ({route, navigation}) => {
                     text: 'Open Settings',
                     onPress: () => {
                       // Open the specific settings page for manage external storage
-                      Linking.openSettings();
+                      if (Platform.OS === 'android') {
+                        Linking.sendIntent('android.settings.MANAGE_APP_ALL_FILES_ACCESS_PERMISSION');
+                      } else {
+                        Linking.openSettings();
+                      }
                     },
                   },
                 ],
@@ -238,6 +243,9 @@ const DetailScreen = ({route, navigation}) => {
   };
 
   const deleteUnstarredPhotos = async () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+
     try {
       console.log('Delete function called');
       console.log('CameraRoll object:', CameraRoll);
@@ -252,6 +260,7 @@ const DetailScreen = ({route, navigation}) => {
             {text: 'Hide Photos', onPress: hideUnstarredPhotos},
           ],
         );
+        setIsProcessing(false);
         return;
       }
 
@@ -261,6 +270,7 @@ const DetailScreen = ({route, navigation}) => {
           'Permission Required',
           'Buzo needs storage permissions to delete photos. Please grant the required permissions in your device settings.',
         );
+        setIsProcessing(false);
         return;
       }
 
@@ -272,6 +282,7 @@ const DetailScreen = ({route, navigation}) => {
 
       if (unstarredUris.length === 0) {
         Alert.alert('Nothing to delete', 'All photos are starred.');
+        setIsProcessing(false);
         return;
       }
 
@@ -310,7 +321,12 @@ const DetailScreen = ({route, navigation}) => {
                   deletedCount * estimatedSizePerPhoto
                 } MB`;
                 setMemorySaved(memorySavedAmount);
-                setShowPopup(true);
+                
+                // Show popup only once
+                setTimeout(() => {
+                  setShowPopup(true);
+                  setIsProcessing(false);
+                }, 100);
               } catch (err) {
                 console.error('Delete error:', err);
 
@@ -323,6 +339,7 @@ const DetailScreen = ({route, navigation}) => {
                     {text: 'Hide Photos', onPress: hideUnstarredPhotos},
                   ],
                 );
+                setIsProcessing(false);
               }
             },
           },
@@ -334,10 +351,14 @@ const DetailScreen = ({route, navigation}) => {
         'Error', 
         'Buzo encountered an error while trying to delete photos. Please try again or check your device permissions.'
       );
+      setIsProcessing(false);
     }
   };
 
   const hideUnstarredPhotos = () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+
     const starredPhotos = photos.filter((_, index) =>
       favoritedIndices.has(index),
     );
@@ -350,10 +371,17 @@ const DetailScreen = ({route, navigation}) => {
     const estimatedSizePerPhoto = 2;
     const memorySavedAmount = `${hiddenCount * estimatedSizePerPhoto} MB`;
     setMemorySaved(memorySavedAmount);
-    setShowPopup(true);
+    
+    setTimeout(() => {
+      setShowPopup(true);
+      setIsProcessing(false);
+    }, 100);
   };
 
   const keepAllPhotos = async () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+
     const starredPhotos = photos.filter((_, index) =>
       favoritedIndices.has(index),
     );
@@ -378,6 +406,7 @@ const DetailScreen = ({route, navigation}) => {
     // Delay navigation to show popup
     setTimeout(() => {
       navigation.goBack();
+      setIsProcessing(false);
     }, 1000);
 
     Alert.alert(
@@ -580,8 +609,9 @@ const DetailScreen = ({route, navigation}) => {
                             setFavoritedIndices(new Set());
                             setCurrentIndex(0);
                             setMemorySaved(`2 MB`);
-                            setShowPopup(true);
+                            
                             setTimeout(() => {
+                              setShowPopup(true);
                               navigation.goBack();
                             }, 1000);
                           } catch (err) {
@@ -627,7 +657,10 @@ const DetailScreen = ({route, navigation}) => {
 
       <SavedPopup
         visible={showPopup}
-        onClose={() => setShowPopup(false)}
+        onClose={() => {
+          setShowPopup(false);
+          setIsProcessing(false);
+        }}
         memorySaved={memorySaved}
       />
     </View>
