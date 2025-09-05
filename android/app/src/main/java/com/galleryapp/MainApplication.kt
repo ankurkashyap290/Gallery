@@ -1,4 +1,4 @@
-package com.galleryapp
+package com.buzzo
 
 import android.app.Application
 import com.facebook.react.PackageList

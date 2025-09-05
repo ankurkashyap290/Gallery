@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.galleryapp">  <!-- ✅ Add your actual package name here -->
+    package="com.buzzo">  <!-- ✅ Add your actual package name here -->
 
     <!-- ✅ Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
