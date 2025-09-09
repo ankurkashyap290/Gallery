@@ -64,7 +64,7 @@ const GalleryScreen = () => {
       return stats.size; // Size in bytes
     } catch (error) {
       console.error('Error getting file size:', error);
-      return 2 * 1024 * 1024; // Fallback to 2MB estimate
+      return 1024 * 1024; // Fallback to 1MB estimate (more reasonable)
     }
   };
 
@@ -217,10 +217,6 @@ const GalleryScreen = () => {
 
   const deleteImage = async uri => {
     try {
-      // Calculate actual file size before deletion
-      const fileSize = await getImageFileSize(uri);
-      const formattedSize = formatFileSize(fileSize);
-      
       await CameraRoll.deletePhotos([uri]);
       const updated = photos
         .map(group => ({
@@ -238,9 +234,6 @@ const GalleryScreen = () => {
         }))
         .filter(group => group.data.length > 0);
       setVisiblePhotos(updatedVisible);
-      
-      // You can show the actual size deleted here if needed
-      console.log(`Deleted image of size: ${formattedSize}`);
     } catch (error) {
       console.error('Failed to delete image:', error);
     }
