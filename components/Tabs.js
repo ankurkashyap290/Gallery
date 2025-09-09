@@ -19,6 +19,7 @@ import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import Header from './Header';
 import SideMenu from './SideMenu';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import RNFS from 'react-native-fs';
 
 const screenWidth = Dimensions.get('window').width;
 const GROUPS_PER_BATCH = 10;
@@ -55,6 +56,33 @@ const GalleryScreen = () => {
       console.error('Error fetching photo IDs:', error);
       return [];
     }
+  };
+
+  const getImageFileSize = async (uri) => {
+    try {
+      const stats = await RNFS.stat(uri);
+      return stats.size; // Size in bytes
+    } catch (error) {
+      console.error('Error getting file size:', error);
+      return 2 * 1024 * 1024; // Fallback to 2MB estimate
+    }
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const calculateTotalSize = async (imageUris) => {
+    let totalSize = 0;
+    for (const uri of imageUris) {
+      const size = await getImageFileSize(uri);
+      totalSize += size;
+    }
+    return totalSize;
   };
   const onRefresh = async () => {
     setRefreshing(true);
@@ -189,6 +217,10 @@ const GalleryScreen = () => {
 
   const deleteImage = async uri => {
     try {
+      // Calculate actual file size before deletion
+      const fileSize = await getImageFileSize(uri);
+      const formattedSize = formatFileSize(fileSize);
+      
       await CameraRoll.deletePhotos([uri]);
       const updated = photos
         .map(group => ({
@@ -206,6 +238,9 @@ const GalleryScreen = () => {
         }))
         .filter(group => group.data.length > 0);
       setVisiblePhotos(updatedVisible);
+      
+      // You can show the actual size deleted here if needed
+      console.log(`Deleted image of size: ${formattedSize}`);
     } catch (error) {
       console.error('Failed to delete image:', error);
     }
