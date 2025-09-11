@@ -25,24 +25,24 @@ const PrivacyPolicyScreen = ({navigation}) => {
 
         <Text style={styles.sectionTitle}>Information We Collect</Text>
         <Text style={styles.text}>
-          Buzo only accesses photos stored locally on your device. We do not collect, store, or transmit any personal information or photos to external servers.
+          Buzo only accesses photos from your device's photo library using the secure MediaStore API. We do not collect, store, or transmit any personal information or photos to external servers.
         </Text>
 
         <Text style={styles.sectionTitle}>How We Use Your Information</Text>
         <Text style={styles.text}>
           • Display your photos in an organized gallery format{'\n'}
           • Allow you to manage and organize your photo collection{'\n'}
-          • Provide photo deletion and hiding functionality
+          • Provide photo management functionality through system APIs
         </Text>
 
         <Text style={styles.sectionTitle}>Data Storage</Text>
         <Text style={styles.text}>
-          All photo management and preferences are stored locally on your device. No data is transmitted to external servers or third parties.
+          All photo management and preferences are stored locally on your device using secure system APIs. No data is transmitted to external servers or third parties.
         </Text>
 
         <Text style={styles.sectionTitle}>Permissions</Text>
         <Text style={styles.text}>
-          Buzo requires storage permissions to access and manage your photos. These permissions are used solely for the app's core functionality.
+          Buzo requires photo library permissions to access and display your photos. These permissions are used solely for the app's core functionality and follow platform security guidelines.
         </Text>
 
         <Text style={styles.sectionTitle}>Contact Us</Text>

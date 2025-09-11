@@ -4,12 +4,13 @@
 
     <!-- ✅ Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"  tools:ignore="ScopedStorage"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- Only request specific media permissions for Android 13+ -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    
+    <!-- For Android 12 and below -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
 
-    <!-- Optional modern permissions for Android 13+ -->
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:ignore="ScopedStorage" />
+    <!-- Remove write permission as we don't need to write files -->
 
     <application
         android:name=".MainApplication"
@@ -19,7 +20,7 @@
         android:allowBackup="false"
         android:theme="@style/AppTheme"
         android:supportsRtl="true"
-        android:requestLegacyExternalStorage="true"> <!-- ✅ Keep only one -->
+        android:requestLegacyExternalStorage="false">
 
         <activity
             android:name=".MainActivity"

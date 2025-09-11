@@ -153,36 +153,36 @@ const DetailScreen = () => {
       const formattedSize = formatFileSize(totalSize);
 
       Alert.alert(
-        'Delete Images',
-        `Are you sure you want to delete ${selectedImages.length} image(s)? This will free up ${formattedSize} of storage.`,
+        'Move to Trash',
+        `Are you sure you want to move ${selectedImages.length} image(s) to trash? This will free up ${formattedSize} of storage.`,
         [
           {text: 'Cancel', style: 'cancel'},
           {
-            text: 'Delete',
+            text: 'Move to Trash',
             style: 'destructive',
             onPress: async () => {
               try {
-                // Delete images from device
+                // Use CameraRoll.deletePhotos which uses MediaStore API
                 await CameraRoll.deletePhotos(selectedImages);
                 
                 // Show success message with actual size
                 Alert.alert(
                   'Success', 
-                  `Successfully deleted ${selectedImages.length} image(s) and freed up ${formattedSize} of storage.`
+                  `Successfully moved ${selectedImages.length} image(s) to trash and freed up ${formattedSize} of storage.`
                 );
                 
                 exitSelectionMode();
                 navigation.goBack();
               } catch (error) {
-                console.error('Error deleting images:', error);
-                Alert.alert('Error', 'Failed to delete some images. Please try again.');
+                console.error('Error moving images to trash:', error);
+                Alert.alert('Error', 'Failed to move some images to trash. Please try again.');
               }
             },
           },
         ],
       );
     } catch (error) {
-      console.error('Error calculating size for deletion:', error);
+      console.error('Error calculating size:', error);
       Alert.alert('Error', 'Failed to calculate image sizes. Please try again.');
     } finally {
       setIsLoading(false);
@@ -252,7 +252,7 @@ const DetailScreen = () => {
         {!isSelectionMode && (
           <TouchableOpacity
             onPress={enterSelectionMode}
-            style={styles.selectButton}>
+              Move to Trash ({selectedImages.length})
             <Feather name="check-square" size={24} color="#fff" />
           </TouchableOpacity>
         )}

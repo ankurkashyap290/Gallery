@@ -45,10 +45,10 @@ const AboutDeveloperScreen = ({navigation}) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Features</Text>
           <Text style={styles.text}>
-            • Organized photo viewing with time-based grouping{'\n'}
+            • View your photos organized by time{'\n'}
             • Star your favorite photos{'\n'}
-            • Clean up storage by managing unwanted photos{'\n'}
-            • Privacy-focused - all data stays on your device
+            • Manage your photo collection{'\n'}
+            • Privacy-focused - uses secure MediaStore API
           </Text>
         </View>
 

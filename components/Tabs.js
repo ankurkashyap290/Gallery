@@ -93,24 +93,42 @@ const GalleryScreen = () => {
   const requestPermissions = async () => {
     if (Platform.OS === 'android') {
       try {
-        const permission =
-          Platform.Version >= 33
-            ? PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES
-            : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
-        const granted = await PermissionsAndroid.request(permission, {
-          title: 'Access to your gallery',
-          message: 'We need access to display your photos',
-          buttonPositive: 'OK',
-        });
+        let granted;
+        
+        if (Platform.Version >= 33) {
+          // Android 13+ - Request specific media permission
+          granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+            {
+              title: 'Photo Gallery Access',
+              message: 'Buzo needs access to your photos to display your gallery',
+              buttonPositive: 'Allow',
+              buttonNegative: 'Deny',
+            }
+          );
+        } else {
+          // Android 12 and below
+          granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+            {
+              title: 'Photo Gallery Access',
+              message: 'Buzo needs access to your photos to display your gallery',
+              buttonPositive: 'Allow',
+              buttonNegative: 'Deny',
+            }
+          );
+        }
+        
         if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
           Alert.alert(
             'Permission Required',
-            'Buzo needs access to your photos to display your gallery. Please grant permission in your device settings to use this feature.',
+            'Buzo needs access to your photos to display your gallery. This permission is required for the app to function properly.',
             [
               {text: 'Cancel', style: 'cancel'},
-              {text: 'Open Settings', onPress: () => {
-                Linking.openSettings();
-              }},
+              {
+                text: 'Open Settings', 
+                onPress: () => Linking.openSettings()
+              },
             ]
           );
           return false;
@@ -120,7 +138,7 @@ const GalleryScreen = () => {
         console.error('Permission error:', err);
         Alert.alert(
           'Error',
-          'An error occurred while requesting permissions. Please try again or check your device settings.',
+          'An error occurred while requesting photo access. Please try again.',
         );
         return false;
       }
@@ -137,12 +155,15 @@ const GalleryScreen = () => {
         return;
       }
 
+      // Use CameraRoll.getPhotos which internally uses MediaStore API
       const result = await CameraRoll.getPhotos({
-        first: 500, // Increased to get more photos
+        first: 500,
         assetType: 'Photos',
+        // Only access photos, not all files
+        include: ['filename', 'imageSize', 'playableDuration'],
       });
+      
       const groupedPhotos = groupPhotosByTimeWindow(result.edges, 10);
-      console.log(groupedPhotos);
 
       const savedPhotoIds = await getSavedPhotoIds();
       const filteredGroups = groupedPhotos
@@ -154,7 +175,6 @@ const GalleryScreen = () => {
         }))
 
         .filter(group => group.data.length > 0); // Optional: remove empty groups
-      console.log(groupedPhotos);
       // Step 3: Set filtered photos
       setPhotos(filteredGroups);
 
@@ -165,6 +185,11 @@ const GalleryScreen = () => {
       setHasMore(filteredGroups.length > GROUPS_PER_BATCH);
     } catch (error) {
       console.error('Failed to fetch images:', error);
+      Alert.alert(
+        'Error Loading Photos',
+        'Unable to load your photos. Please check your permissions and try again.',
+        [{text: 'OK'}]
+      );
     } finally {
       setLoading(false);
     }
