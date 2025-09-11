@@ -1,15 +1,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.buzzo">  <!-- ✅ Add your actual package name here -->
+    package="com.buzzo">
 
-    <!-- ✅ Permissions -->
+    <!-- ✅ Only necessary permissions for gallery app -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"  tools:ignore="ScopedStorage"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-
-    <!-- Optional modern permissions for Android 13+ -->
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:ignore="ScopedStorage" />
+    
+    <!-- Modern scoped storage permissions for Android 13+ -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    
+    <!-- Legacy permission for older Android versions -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
+        android:maxSdkVersion="32" />
 
     <application
         android:name=".MainApplication"
@@ -18,8 +20,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:allowBackup="false"
         android:theme="@style/AppTheme"
-        android:supportsRtl="true"
-        android:requestLegacyExternalStorage="true"> <!-- ✅ Keep only one -->
+        android:supportsRtl="true">
 
         <activity
             android:name=".MainActivity"
@@ -35,4 +36,3 @@
         </activity>
     </application>
 </manifest>
-

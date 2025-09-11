@@ -173,13 +173,11 @@ const DetailScreen = ({ route, navigation }) => {
         return;
       }
 
-      // Calculate total size of unstarred photos
-      const totalSize = await calculateTotalSize(unstarredUris);
-      const formattedSize = formatFileSize(totalSize);
-
+      // Estimate total size of unstarred photos
+      const estimatedSize = estimateFileSize(unstarredUris.length);
       Alert.alert(
         'Confirm Delete',
-        `Are you sure you want to permanently delete ${unstarredUris.length} photo(s) from your device? This will free up ${formattedSize} of storage.`,
+        `Are you sure you want to permanently delete ${unstarredUris.length} photo(s) from your device? This will free up approximately ${estimatedSize} of storage.`,
         [
           { text: 'Cancel', style: 'cancel' },
           {
@@ -194,14 +192,13 @@ const DetailScreen = ({ route, navigation }) => {
                 setPhotos(newPhotos);
                 saveAllPhotoIds(newPhotos);
                 setFavoritedIndices(new Set());
-                setCurrentIndex(0);
-                setMemorySaved(formattedSize);
-                setShowPopup(true);
+                setMemorySaved(estimatedSize);
+      const estimatedSize = estimateFileSize(unstarredUris.length);
               } catch (err) {
                 console.error('Delete error:', err);
                 Alert.alert(
                   'Deletion Failed',
-                  `Could not delete photos: ${err.message}\n\nWould you like to hide them instead?`,
+                  'Could not delete photos. Would you like to hide them from the app instead?',
                   [
                     { text: 'Cancel', style: 'cancel' },
                     { text: 'Hide Photos', onPress: hideUnstarredPhotos },
@@ -396,7 +393,7 @@ const DetailScreen = ({ route, navigation }) => {
                             setPhotos([]);
                             setFavoritedIndices(new Set());
                             setCurrentIndex(0);
-                            setMemorySaved(formattedSize);
+                            setMemorySaved(estimatedSize);
                             setShowPopup(true);
                             setTimeout(() => {
                               navigation.goBack();
