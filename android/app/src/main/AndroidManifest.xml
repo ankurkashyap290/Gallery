@@ -1,13 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.galleryapp">  <!-- ✅ Add your actual package name here -->
+    package="com.buzzo">  <!-- ✅ Add your actual package name here -->
 
     <!-- ✅ Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
-    
-    <!-- Media permissions for different Android versions -->
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" android:minSdkVersion="33" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"  tools:ignore="ScopedStorage"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <!-- Optional modern permissions for Android 13+ -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:ignore="ScopedStorage" />
 
     <application
         android:name=".MainApplication"
@@ -17,7 +19,7 @@
         android:allowBackup="false"
         android:theme="@style/AppTheme"
         android:supportsRtl="true"
-        android:requestLegacyExternalStorage="false">
+        android:requestLegacyExternalStorage="true"> <!-- ✅ Keep only one -->
 
         <activity
             android:name=".MainActivity"
@@ -33,3 +35,4 @@
         </activity>
     </application>
 </manifest>
+
