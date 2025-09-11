@@ -24,7 +24,6 @@ import {
   RESULTS,
 } from 'react-native-permissions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import RNFS from 'react-native-fs'; // Added for file size calculation
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -68,24 +67,12 @@ const DetailScreen = ({ route, navigation }) => {
   const requestPermission = async () => {
     try {
       if (Platform.OS === 'android') {
-        let permissions = [];
-        if (Platform.Version >= 33) {
-          permissions = [PERMISSIONS.ANDROID.READ_MEDIA_IMAGES];
-        } else if (Platform.Version >= 30) {
-          permissions = [
-            PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE,
-            PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE,
-          ];
-        } else {
-          permissions = [
-            PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE,
-            PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE,
-          ];
-        }
-        const validPermissions = permissions.filter(
-          permission => permission != null,
-        );
-        for (const permission of validPermissions) {
+        // Only request the permissions we actually need
+        const permission = Platform.Version >= 33 
+          ? PERMISSIONS.ANDROID.READ_MEDIA_IMAGES 
+          : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE;
+          
+        if (permission) {
           try {
             const result = await check(permission);
             if (result === RESULTS.DENIED) {
@@ -93,7 +80,7 @@ const DetailScreen = ({ route, navigation }) => {
               if (requestResult !== RESULTS.GRANTED) {
                 Alert.alert(
                   'Permission Required',
-                  'Please enable storage access in Settings to delete photos',
+                  'Please enable photo access in Settings to manage photos',
                   [
                     { text: 'Cancel', style: 'cancel' },
                     { text: 'Open Settings', onPress: openSettings },
@@ -104,7 +91,7 @@ const DetailScreen = ({ route, navigation }) => {
             } else if (result === RESULTS.BLOCKED) {
               Alert.alert(
                 'Permission Required',
-                'Please enable storage access in Settings to delete photos',
+                'Please enable photo access in Settings to manage photos',
                 [
                   { text: 'Cancel', style: 'cancel' },
                   { text: 'Open Settings', onPress: openSettings },
@@ -113,29 +100,8 @@ const DetailScreen = ({ route, navigation }) => {
               return false;
             }
           } catch (permError) {
-            console.error(`Error checking permission ${permission}:`, permError);
-          }
-        }
-        if (Platform.Version >= 30) {
-          try {
-            const manageStorageResult = await check(
-              PERMISSIONS.ANDROID.MANAGE_EXTERNAL_STORAGE,
-            );
-            if (manageStorageResult === RESULTS.DENIED) {
-              Alert.alert(
-                'Additional Permission Required',
-                'For Android 11+, you may need to grant "All files access" permission for photo deletion. This will redirect you to settings.',
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  {
-                    text: 'Open Settings',
-                    onPress: () => Linking.openSettings(),
-                  },
-                ],
-              );
-            }
-          } catch (manageError) {
-            console.log('MANAGE_EXTERNAL_STORAGE not available or not needed');
+            console.error(`Error checking permission:`, permError);
+            return false;
           }
         }
         return true;
@@ -151,34 +117,17 @@ const DetailScreen = ({ route, navigation }) => {
     return CameraRoll && typeof CameraRoll.deletePhotos === 'function';
   };
 
-  // Function to get file size of a single image
-  const getImageFileSize = async uri => {
-    try {
-      const stats = await RNFS.stat(uri);
-      return stats.size; // Size in bytes
-    } catch (error) {
-      console.error('Error getting file size for', uri, ':', error);
-      return 1024 * 1024; // 1MB fallback
+  // Estimate file size for user feedback (no actual file system access needed)
+  const estimateFileSize = (count) => {
+    // Average photo size estimation (2-3MB per photo)
+    const avgSizePerPhoto = 2.5 * 1024 * 1024; // 2.5MB in bytes
+    const totalBytes = count * avgSizePerPhoto;
+    
+    if (totalBytes < 1024 * 1024) {
+      return `${Math.round(totalBytes / 1024)} KB`;
+    } else {
+      return `${Math.round(totalBytes / (1024 * 1024))} MB`;
     }
-  };
-
-  // Function to format file size
-  const formatFileSize = bytes => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  // Function to calculate total size of multiple images
-  const calculateTotalSize = async imageUris => {
-    let totalSize = 0;
-    for (const uri of imageUris) {
-      const size = await getImageFileSize(uri);
-      totalSize += size;
-    }
-    return totalSize;
   };
 
   const saveAllPhotoIds = async photoArray => {
